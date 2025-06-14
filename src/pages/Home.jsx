@@ -15,8 +15,7 @@ function Home() {
         const fetchJobs = async () => {
             setLoading(true);
             try {
-                const [res1, res2, res3, res4] = await Promise.all([
-                    fetch('http://localhost:3001/api/remoteok'),
+                const [res1, res2, res3] = await Promise.all([
                     fetch('https://jobicy.com/api/v2/remote-jobs'),
                     fetch('https://data.usajobs.gov/api/search?Keyword=visa', {
                         headers: {
@@ -38,25 +37,13 @@ function Home() {
                     })
                 ]);
 
-                const [data1, data2, data3, data4] = await Promise.all([
+                const [data1, data2, data3] = await Promise.all([
                     res1.json(),
                     res2.json(),
                     res3.json(),
-                    res4.json()
                 ]);
 
                 const jobs1 = (data1.jobs || []).map(job => ({
-                    source: 'RemoteOK',
-                    id: job.id,
-                    title: job.position || job.title,
-                    company: job.company || job.employer,
-                    location: job.location || job.city || 'Remote',
-                    url: job.url || job.link,
-                    remote: job.tags?.includes('remote') || job.is_remote,
-                    visa: job.supports_visa || /visa/i.test(job.description)
-                }));
-
-                const jobs2 = (data2.jobs || []).map(job => ({
                     source: 'Jobicy',
                     id: job.id,
                     title: job.jobTitle,
@@ -67,7 +54,7 @@ function Home() {
                     visa: /visa/i.test(job.jobDescription)
                 }));
 
-                const jobs3 = (data3.SearchResult?.SearchResultItems || []).map(item => {
+                const jobs2 = (data2.SearchResult?.SearchResultItems || []).map(item => {
                     const j = item.MatchedObjectDescriptor;
                     return {
                         source: 'USAJOBS',
@@ -81,7 +68,7 @@ function Home() {
                     };
                 });
 
-                const jobs4 = (data4.jobs || []).map(job => ({
+                const jobs3 = (data3.jobs || []).map(job => ({
                     source: 'Jooble',
                     id: job.id,
                     title: job.title,
@@ -92,7 +79,7 @@ function Home() {
                     visa: /visa/i.test(job.description)
                 }));
 
-                setJobs([...jobs1, ...jobs2, ...jobs3, ...jobs4]);
+                setJobs([...jobs1, ...jobs2, ...jobs3]);
             } catch (err) {
                 console.error('Error fetching jobs:', err);
             } finally {
@@ -185,7 +172,7 @@ function Home() {
                             ))}
                         </div>
                     ) : (
-                        ['RemoteOK', 'USAJOBS', 'Jobicy', 'Jooble'].map((source) => {
+                        ['USAJOBS', 'Jobicy', 'Jooble'].map((source) => {
                             const jobsFromSource = paginatedJobs.filter(job => job.source === source);
                             if (jobsFromSource.length === 0) return null;
                             return (
